@@ -62,28 +62,31 @@ class Orchestrator(object):
             if not fil:
                 continue
             if fil.mode == "B":
-                self.apply_filter_black(fil.letter)
+                self.word_list = self.apply_filter_black(self.word_list, fil.letter)
             elif fil.mode == "Y":
-                self.apply_filter_yellow(fil.letter, fil.index)
+                self.word_list = self.apply_filter_yellow(self.word_list, fil.letter, fil.index)
             elif fil.mode == "G":
-                self.apply_filter_green(fil.letter, fil.index)
+                self.word_list = self.apply_filter_green(self.word_list, fil.letter, fil.index)
 
-    def apply_filter_black(self, letter):
-        self.word_list = [x for x in self.word_list if letter not in x]
+    @staticmethod
+    def apply_filter_black(words, letter):
+        return [x for x in words if letter not in x]
 
-    def apply_filter_yellow(self, letter, index):
+    @staticmethod
+    def apply_filter_yellow(words, letter, index):
         temp = []
-        for word in self.word_list:
+        for word in words:
             if word[index] != letter and letter in word:
                 temp.append(word)
-        self.word_list = temp
+        return temp
 
-    def apply_filter_green(self, letter, index):
+    @staticmethod
+    def apply_filter_green(words, letter, index):
         temp = []
-        for word in self.word_list:
+        for word in words:
             if word[index] == letter:
                 temp.append(word)
-        self.word_list = temp
+        return temp
 
     def display_master_list(self):
         for word in self.word_list:
@@ -121,4 +124,12 @@ class Orchestrator(object):
                 word_score[score] = []
             word_score[score].append(word)
         best_suggestion_index = max(word_score.keys())
-        print(word_score[best_suggestion_index])
+        final_suggestion = word_score[best_suggestion_index]
+        for _filter in self.filter_list:
+            if _filter.mode == "B":
+                final_suggestion = self.apply_filter_black(final_suggestion, _filter.letter)
+            elif _filter.mode == "Y":
+                final_suggestion = self.apply_filter_yellow(final_suggestion, _filter.letter, _filter.index)
+            elif _filter.mode == "G":
+                final_suggestion = self.apply_filter_green(final_suggestion, _filter.letter, _filter.index)
+        print(final_suggestion)

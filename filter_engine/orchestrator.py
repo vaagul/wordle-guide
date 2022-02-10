@@ -9,11 +9,12 @@ class Orchestrator(object):
         print(f"Initialised with {len(self.word_list)} words")
 
     def add_filter(self, word_filter):
-        self.filter_list.append(word_filter)
+        if word_filter:
+            self.filter_list.append(word_filter)
 
     def load_master_list(self):
         with open("resource/wordle-set.txt") as f:
-        # with open("resource/sowpods-five.txt") as f:
+            # with open("resource/sowpods-five.txt") as f:
             for line in f.readlines():
                 self.word_list.append(line.strip())
         self.master_list = self.word_list
@@ -35,7 +36,13 @@ class Orchestrator(object):
             self.recommend_word(self.word_list, 0)
 
     def prune_filters(self):
-        pass
+        filter_mode = {}
+        for _filter in self.filter_list:
+            if _filter.mode in ("G", "Y"):
+                filter_mode.setdefault(_filter.mode, []).append(_filter.letter)
+        for _filter in self.filter_list:
+            if _filter.mode == "B" and (_filter.letter in filter_mode.get("G", []) or _filter.letter in filter_mode.get("Y", [])):
+                self.filter_list.remove(_filter)
 
     def generate_filter(self, string_filter):
         if len(string_filter) != 11:
@@ -44,7 +51,8 @@ class Orchestrator(object):
         split_filter = string_filter.split('/')
         for index in range(0, 5):
             if split_filter[0][index] not in ("B", "Y", "G"):
-                self.filter_list.append(WordFilter(split_filter[1][index].upper(), split_filter[0][index].lower(), index))
+                self.filter_list.append(
+                    WordFilter(split_filter[1][index].upper(), split_filter[0][index].lower(), index))
             else:
                 print("Incorrect colors given")
                 break
@@ -88,7 +96,6 @@ class Orchestrator(object):
         if len(word_list) == 1:
             print(f"The answer is {word_list[0]}")
             return
-        key = ''
         letter_count = {}
         word_score = {}
         index_list = []
@@ -99,12 +106,14 @@ class Orchestrator(object):
                 index_list.append(_filter.index)
         for word in word_list:
             for index in range(0, 5):
+                # TODO: Remove Yellow index possibilities
                 if index not in index_list:
                     letter_count[word[index]] = letter_count.setdefault(word[index], 0) + 1
         for word in self.master_list:
             score = 0
             used_letter = []
             for letter in word:
+                # TODO: used_letter weightage getting fucked at "yolky"
                 if letter not in used_letter:
                     score += letter_count.get(letter, 0)
                     used_letter.append(letter)

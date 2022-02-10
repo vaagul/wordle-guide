@@ -27,6 +27,12 @@ class Orchestrator(object):
             self.add_filter(self.generate_filter(filter_string))
             self.prune_filters()
             self.apply_filter()
+        elif value == "3":
+            self.display_master_list_len()
+        elif value == "4":
+            self.display_master_list()
+        elif value == "5":
+            self.recommend_word(self.word_list, 0)
 
     def prune_filters(self):
         pass
@@ -38,8 +44,7 @@ class Orchestrator(object):
         split_filter = string_filter.split('/')
         for index in range(0, 5):
             if split_filter[0][index] not in ("B", "Y", "G"):
-                self.filter_list.append(
-                    WordFilter(split_filter[1][index].upper(), split_filter[0][index].lower(), index))
+                self.filter_list.append(WordFilter(split_filter[1][index].upper(), split_filter[0][index].lower(), index))
             else:
                 print("Incorrect colors given")
                 break
@@ -72,3 +77,39 @@ class Orchestrator(object):
                 temp.append(word)
         self.word_list = temp
 
+    def display_master_list(self):
+        for word in self.word_list:
+            print(word)
+
+    def display_master_list_len(self):
+        print(len(self.word_list))
+
+    def recommend_word(self, word_list, height):
+        if len(word_list) == 1:
+            print(f"The answer is {word_list[0]}")
+            return
+        key = ''
+        letter_count = {}
+        word_score = {}
+        index_list = []
+        for _filter in self.filter_list:
+            if not _filter:
+                continue
+            if _filter.mode == "G":
+                index_list.append(_filter.index)
+        for word in word_list:
+            for index in range(0, 5):
+                if index not in index_list:
+                    letter_count[word[index]] = letter_count.setdefault(word[index], 0) + 1
+        for word in self.master_list:
+            score = 0
+            used_letter = []
+            for letter in word:
+                if letter not in used_letter:
+                    score += letter_count.get(letter, 0)
+                    used_letter.append(letter)
+            if not word_score.get(score):
+                word_score[score] = []
+            word_score[score].append(word)
+        best_suggestion_index = max(word_score.keys())
+        print(word_score[best_suggestion_index])

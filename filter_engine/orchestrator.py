@@ -32,7 +32,43 @@ class Orchestrator(object):
         pass
 
     def generate_filter(self, string_filter):
-        pass
+        if len(string_filter) != 11:
+            print("Incorrect format")
+            return
+        split_filter = string_filter.split('/')
+        for index in range(0, 5):
+            if split_filter[0][index] not in ("B", "Y", "G"):
+                self.filter_list.append(
+                    WordFilter(split_filter[1][index].upper(), split_filter[0][index].lower(), index))
+            else:
+                print("Incorrect colors given")
+                break
 
     def apply_filter(self):
-        pass
+        for fil in self.filter_list:
+            if not fil:
+                continue
+            if fil.mode == "B":
+                self.apply_filter_black(fil.letter)
+            elif fil.mode == "Y":
+                self.apply_filter_yellow(fil.letter, fil.index)
+            elif fil.mode == "G":
+                self.apply_filter_green(fil.letter, fil.index)
+
+    def apply_filter_black(self, letter):
+        self.word_list = [x for x in self.word_list if letter not in x]
+
+    def apply_filter_yellow(self, letter, index):
+        temp = []
+        for word in self.word_list:
+            if word[index] != letter and letter in word:
+                temp.append(word)
+        self.word_list = temp
+
+    def apply_filter_green(self, letter, index):
+        temp = []
+        for word in self.word_list:
+            if word[index] == letter:
+                temp.append(word)
+        self.word_list = temp
+
